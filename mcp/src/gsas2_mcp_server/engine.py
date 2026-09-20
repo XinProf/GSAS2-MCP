@@ -165,6 +165,23 @@ def bootstrap(force: bool = False) -> Dict[str, Any]:
             from GSASII import GSASIIpath
             GSASIIpath.SetBinaryPath()
 
+            # Make the compiled extensions importable as ``GSASII.<mod>``.
+            # Conda/installer distributions keep the .pyd/.so files in a
+            # version-specific subdirectory (e.g. ``GSASII-bin/win_64_p3.13_n2.2``)
+            # and expose it only through ``GSASIIpath.binaryPath`` -- upstream
+            # GSAS-II loads them via ``GSASIIpath.ImportModule`` instead of a
+            # plain import.  Without this, ``from GSASII import pyspg`` fails
+            # even though the extension is present and loadable.
+            _binpath = getattr(GSASIIpath, "binaryPath", None)
+            if _binpath:
+                import GSASII as _GSASII_pkg
+                for _p in (_binpath, str(_binpath)):
+                    if _p not in sys.path:
+                        sys.path.insert(0, _p)
+                    _pkgpath = getattr(_GSASII_pkg, "__path__", None)
+                    if _pkgpath is not None and _p not in list(_pkgpath):
+                        _pkgpath.append(_p)
+
             from GSASII import (GSASIIscriptable, GSASIIobj, GSASIIspc,
                                 GSASIIlattice)
         except Exception as exc:  # pragma: no cover - depends on the install

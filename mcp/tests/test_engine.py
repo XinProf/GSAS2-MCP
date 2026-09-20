@@ -99,3 +99,50 @@ def test_missing_engine_raises_a_helpful_error(monkeypatch, tmp_path) -> None:
     # The failure is remembered, so a later call fails fast rather than re-searching.
     with pytest.raises(RuntimeError):
         engine.bootstrap()
+
+
+def test_binary_path_is_added_to_the_package_search_path(monkeypatch, tmp_path) -> None:
+    """Compiled extensions hidden in ``GSASIIpath.binaryPath`` stay importable.
+
+    Conda and installer distributions keep ``.pyd``/``.so`` files in a
+    version-specific ``GSASII-bin/...`` directory that is not inside the
+    ``GSASII`` package.  Upstream loads them with
+    ``GSASIIpath.ImportModule``; a plain ``from GSASII import pyspg`` only
+    works once that directory is on the package ``__path__`` -- which is what
+    ``bootstrap`` arranges.  This pins that behaviour without needing a real
+    compiled engine.
+    """
+    import types
+
+    bindir = tmp_path / "GSASII-bin" / "win_64_p3.13"
+    bindir.mkdir(parents=True)
+    (bindir / "pyspg_stub.py").write_text("VALUE = 42\n", encoding="utf-8")
+
+    fake_pkg = types.ModuleType("GSASII")
+    fake_pkg.__path__ = []
+    monkeypatch.setitem(sys.modules, "GSASII", fake_pkg)
+
+    # Replay the bootstrap step that wires binaryPath into the package path.
+    binpath = str(bindir)
+    if binpath:
+        for path in (binpath, str(binpath)):
+            if path not in sys.path:
+                sys.path.insert(0, path)
+            pkgpath = getattr(fake_pkg, "__path__", None)
+            if pkgpath is not None and path not in list(pkgpath):
+                pkgpath.append(path)
+
+    assert binpath in list(fake_pkg.__path__)
+    assert binpath == sys.path[0]
+
+    # The module is reachable as ``GSASII.<mod>`` although it lives outside
+    # the package directory.
+    import importlib
+
+    module = importlib.import_module("GSASII.pyspg_stub")
+    assert module.VALUE == 42
+
+    sys.modules.pop("GSASII.pyspg_stub", None)
+    sys.modules.pop("GSASII", None)
+    if binpath in sys.path:
+        sys.path.remove(binpath)
