@@ -1,49 +1,49 @@
 # GSAS2-MCP
 
-**GSAS-II 引擎 + MCP 协议层 — Rietveld 精修与晶体学分析的 AI 智能体接口**
+> [Chinese (Simplified)](README-CN.md) · English
 
 **A GSAS-II fork with a built-in MCP server — Rietveld refinement and crystallographic analysis for AI agents.**
 
-本仓库包含两层，配合使用：
+This repository contains two layers, used together:
 
-| 层 | 位置 | 说明 | 许可证 |
+| Layer | Location | Description | License |
 |------|------|------|--------|
-| **MCP 协议层** | `mcp/` | MCP server，把 GSAS-II 暴露为 17 个标准工具 | BSD-3-Clause |
-| **晶体学引擎** | `GSASII/` + `sources/` | 上游 [AdvancedPhotonSource/GSAS-II](https://github.com/AdvancedPhotonSource/GSAS-II) 完整引擎（含本 fork 的 3 处修复与预编译扩展） | GSAS-II Open Source License（见 `LICENSE`） |
+| **MCP protocol layer** | `mcp/` | MCP server that exposes GSAS-II as 17 standard tools | BSD-3-Clause |
+| **Crystallographic engine** | `GSASII/` + `sources/` | The complete upstream [AdvancedPhotonSource/GSAS-II](https://github.com/AdvancedPhotonSource/GSAS-II) engine (including 3 fixes in this fork and prebuilt extensions) | GSAS-II Open Source License (see `LICENSE`) |
 
 ```
-AI 智能体 (Claude / Copilot / Cursor …)
+AI Agent (Claude / Copilot / Cursor …)
         │  MCP over stdio / SSE / streamable-http
         ▼
 ┌────────────────────┐   import    ┌────────────────────────┐
-│  mcp/              │ ──────────→ │  GSASII/  (引擎)        │
+│  mcp/              │ ──────────→ │  GSASII/  (engine)     │
 │  gsas2_mcp_server  │             │  Rietveld / Le Bail    │
 └────────────────────┘             └────────────────────────┘
 ```
 
 ---
 
-## 快速开始
+## Quick Start
 
 ```bash
-# 1. 安装 MCP 层（本仓库内的 mcp/ 目录）
+# 1. Install the MCP layer (the mcp/ directory in this repo)
 pip install /path/to/GSAS2-MCP/mcp
 
-# 2. 指向引擎（即本仓库的检出目录）
+# 2. Point to the engine (i.e., this repo's checkout directory)
 export GSAS2_MCP_ENGINE=/path/to/GSAS2-MCP     # Windows: set GSAS2_MCP_ENGINE=...
 
-# 3. 自检：打印引擎位置、可用的 Fortran 扩展、已注册工具
+# 3. Self-check: print the engine location, available Fortran extensions, and registered tools
 gsas2-mcp --check
 
-# 4. 启动（stdio 默认，适配 Claude Desktop / Cursor / Cline）
+# 4. Launch (stdio by default, for Claude Desktop / Cursor / Cline)
 python -m gsas2_mcp_server
 python -m gsas2_mcp_server --transport sse --port 8910
 python -m gsas2_mcp_server --transport streamable-http
 ```
 
-引擎也可安装进同一环境（pip install GSAS-II），server 优先读 `GSAS2_MCP_ENGINE`，其次找可导入的 `GSASII` 包。
+The engine can also be installed into the same environment (pip install GSAS-II); the server reads `GSAS2_MCP_ENGINE` first, then falls back to an importable `GSASII` package.
 
-### Claude Desktop / Cursor 配置
+### Claude Desktop / Cursor Configuration
 
 ```json
 {
@@ -59,87 +59,87 @@ python -m gsas2_mcp_server --transport streamable-http
 }
 ```
 
-详细的安装、工具语义、变量命名（`':0:Scale'`、`'0::A0'`）见 [`mcp/README.md`](mcp/README.md)。
+For detailed installation, tool semantics, and variable naming (`':0:Scale'`, `'0::A0'`), see [`mcp/README.md`](mcp/README.md).
 
 ---
 
-## MCP 工具清单（17 个）
+## MCP Tool List (17)
 
-| 类别 | 工具 | 功能 |
+| Category | Tool | Description |
 |------|------|------|
-| **项目管理** | `create_project` | 创建新的 .gpx 项目 |
-| | `load_project` | 加载已有 .gpx 项目 |
-| | `project_summary` | 项目结构化摘要（直方图、物相、精修标志、能力） |
-| | `save_project` | 保存项目（可另存） |
-| **数据导入** | `add_powder_histogram` | 导入粉末衍射谱（+仪器参数文件） |
-| | `add_phase` | 从 CIF 添加物相，或从晶胞参数构建 |
-| | `add_image` | 载入 2D 探测器图像 |
-| | `load_data` | 用导入器检查文件，不落盘 |
-| **精修控制** | `set_refinement` | 开关精修参数（支持缩写名自动映射） |
-| | `refine` | 执行 Rietveld / Le Bail 精修 |
-| | `get_results` | Rwp、GoF、R 因子、晶胞参数与 ESD、位移 |
-| | `hold_variable` | 固定参数 |
-| | `free_variable` | 释放参数 |
-| **智能诊断** | `auto_diagnose` | 检查项目，报告问题与修复建议 |
-| | `suggest_best_strategy` | 推荐常规分步精修序列 |
-| | `generate_report` | 生成报告（Markdown / HTML / JSON） |
-| **可视化** | `generate_plot` | 观察/计算/差分拟合图 |
+| **Project management** | `create_project` | Create a new .gpx project |
+| | `load_project` | Load an existing .gpx project |
+| | `project_summary` | Structured project summary (histograms, phases, refinement flags, capabilities) |
+| | `save_project` | Save the project (optionally under a new name) |
+| **Data import** | `add_powder_histogram` | Import a powder diffraction pattern (+ instrument parameter file) |
+| | `add_phase` | Add a phase from a CIF, or build one from unit-cell parameters |
+| | `add_image` | Load a 2D detector image |
+| | `load_data` | Inspect a file with the importer without writing to disk |
+| **Refinement control** | `set_refinement` | Toggle refinement parameters (with automatic abbreviation mapping) |
+| | `refine` | Run Rietveld / Le Bail refinement |
+| | `get_results` | Rwp, GoF, R factors, unit-cell parameters with ESDs, displacements |
+| | `hold_variable` | Hold (fix) a parameter |
+| | `free_variable` | Free (release) a parameter |
+| **Smart diagnostics** | `auto_diagnose` | Inspect the project, report problems and fix suggestions |
+| | `suggest_best_strategy` | Recommend a standard stepwise refinement sequence |
+| | `generate_report` | Generate a report (Markdown / HTML / JSON) |
+| **Visualization** | `generate_plot` | Observed / calculated / difference fit plot |
 
-每个工具都返回 JSON：成功 `{"ok": true, ...}`；失败 `{"ok": false, "error": ..., "error_type": ..., "hint": ...}`——工具不抛异常，失败调用不会打断传输层。
+Every tool returns JSON: on success `{"ok": true, ...}`; on failure `{"ok": false, "error": ..., "error_type": ..., "hint": ...}` — tools never raise exceptions, and a failed call does not break the transport layer.
 
 ---
 
-## 本 Fork 相对上游的变更
+## Changes in This Fork vs Upstream
 
-| 变更 | 位置 | 说明 |
+| Change | Location | Description |
 |------|------|------|
-| **MCP 服务层** | `mcp/`（新增） | `gsas2_mcp_server` 10 模块 + 126 项测试；stdio / SSE / streamable-http 三种传输；兼容 mcp SDK 1.x 与 2.x（`FastMCP` → `MCPServer` 改名） |
-| **空间群回退** | `GSASII/GSASIIspc.py` | `pyspg` 缺失时 `P 1` / `P -1` 走纯 Python 回退（1-based 索引、acentric `SGOps` + `SGInv` 反转，均按 GSAS-II 约定）；其他空间群返回指名 `pyspg` 的结构化错误，不再裸 `NameError` |
-| **P1SGData 自包含** | `GSASII/GSASIIobj.py` | 原 `except: pass` 会留下未定义的 `P1SGData`，后续 `SetNewPhase()` 报 NameError；改为自包含字面量，测试与真实 `SpcGroup('P 1')` 逐字段对齐 |
-| **精修标志静默丢弃修复** | `GSASII/GSASIIscriptable.py` | `set_refinements()`/`clear_refinements()` 布尔 `Background` 分支误用 `return`，同一调用中后续同族键被静默丢弃；改为 `continue`，附回归测试 |
-| **Python 3.11 预编译扩展** | `GSASII/*.cpython-311-x86_64-linux-gnu.so` | 8 个 Fortran/C 扩展（conda-forge gfortran 15.2.0，Debian 12），Linux x86_64 开箱即用 |
+| **MCP server layer** | `mcp/` (added) | `gsas2_mcp_server` 10 modules + 126 tests; three transports: stdio / SSE / streamable-http; compatible with mcp SDK 1.x and 2.x (`FastMCP` → `MCPServer` rename) |
+| **Space-group fallback** | `GSASII/GSASIIspc.py` | When `pyspg` is missing, `P 1` / `P -1` fall back to pure Python (1-based indexing, acentric `SGOps` + `SGInv` inversion, all per GSAS-II conventions); other space groups return a structured error naming `pyspg`, instead of a bare `NameError` |
+| **Self-contained P1SGData** | `GSASII/GSASIIobj.py` | The original `except: pass` left `P1SGData` undefined, so a later `SetNewPhase()` raised NameError; replaced with a self-contained literal, aligned field-by-field in tests against a real `SpcGroup('P 1')` |
+| **Fix for silently dropped refinement flags** | `GSASII/GSASIIscriptable.py` | In `set_refinements()`/`clear_refinements()`, the boolean `Background` branch mistakenly used `return`, silently dropping subsequent keys of the same family in the same call; changed to `continue`, with a regression test |
+| **Python 3.11 prebuilt extensions** | `GSASII/*.cpython-311-x86_64-linux-gnu.so` | 8 Fortran/C extensions (conda-forge gfortran 15.2.0, Debian 12), ready out of the box on Linux x86_64 |
 
-### 引擎能力降级（无编译扩展时）
+### Degraded Engine Capabilities (Without Compiled Extensions)
 
-| 组件 | 无扩展时的行为 |
+| Component | Behavior without extensions |
 |------|----------------|
-| `pyspg`（空间群表） | `P 1` / `P -1` 仍可解析（纯 Python 回退）；其他空间群的 CIF 导入返回指名 `pyspg` 的结构化错误 |
-| `pypowder`（谱计算） | `refine` 返回结构化错误而非运行；其余工具全部可用 |
+| `pyspg` (space-group tables) | `P 1` / `P -1` still parse (pure-Python fallback); CIF imports for other space groups return a structured error naming `pyspg` |
+| `pypowder` (pattern computation) | `refine` returns a structured error instead of running; all other tools remain available |
 
-即：无编译器的平台（如 Windows 纯 pip 安装）仍可建项目、导数据、设标志、固定/释放变量、诊断、出报告和图——只是不能精修。
+In short: platforms without a compiler (e.g., a pip-only install on Windows) can still create projects, import data, set flags, hold/free variables, diagnose, and produce reports and plots — only refinement is unavailable.
 
-### stdout 隔离
+### stdout Isolation
 
-GSAS-II 会把进度信息打到 stdout，而 stdio 传输上 stdout 就是 JSON-RPC 线路。所有引擎调用均经 `gsas2_mcp_server.engine.quiet` 把 Python 级 stdout 重定向到 stderr；测试套件断言完整工具循环后 stdout 完全为空。
+GSAS-II writes progress messages to stdout, but over the stdio transport stdout is the JSON-RPC channel. All engine calls go through `gsas2_mcp_server.engine.quiet` to redirect Python-level stdout to stderr; the test suite asserts that stdout is completely empty after a full tool loop.
 
 ---
 
-## 代码结构
+## Code Structure
 
 ```
 GSAS2-MCP/
-├── mcp/                                 # MCP 协议层（本 fork 新增）
-│   ├── src/gsas2_mcp_server/            # server / engine / state / 5 组 tools
-│   ├── tests/                           # 126 项测试（含子进程端到端）
+├── mcp/                                 # MCP protocol layer (added in this fork)
+│   ├── src/gsas2_mcp_server/            # server / engine / state / 5 tool groups
+│   ├── tests/                           # 126 tests (incl. subprocess end-to-end)
 │   ├── pyproject.toml                   # gsas2-mcp 0.1.0, BSD-3-Clause
-│   └── README.md                        # 协议层详细文档
-├── GSASII/                              # GSAS-II 引擎（上游同步 + 3 处修复）
-│   ├── GSASIIscriptable.py              # 脚本 API（MCP 层依赖）
-│   ├── GSASIIobj.py / GSASIIspc.py      # 数据结构 / 空间群（含回退）
-│   ├── imports/                         # 30+ 数据导入器
-│   └── *.cpython-311-x86_64-linux-gnu.so  # 预编译 Fortran 扩展 ×8
-├── sources/                             # Fortran/C 源码 + meson 构建
-├── tests/testinp/                       # PbSO4 等测试数据
+│   └── README.md                        # Detailed protocol-layer docs
+├── GSASII/                              # GSAS-II engine (upstream sync + 3 fixes)
+│   ├── GSASIIscriptable.py              # Scripting API (MCP layer dependency)
+│   ├── GSASIIobj.py / GSASIIspc.py      # Data structures / space groups (incl. fallback)
+│   ├── imports/                         # 30+ data importers
+│   └── *.cpython-311-x86_64-linux-gnu.so  # Prebuilt Fortran extensions ×8
+├── sources/                             # Fortran/C sources + meson build
+├── tests/testinp/                       # PbSO4 and other test data
 └── LICENSE                              # GSAS-II Open Source License
 ```
 
 ---
 
-## 编译 Fortran 扩展
+## Building the Fortran Extensions
 
-预编译 `.so` 仅覆盖 Linux x86_64 / Python 3.11。其他平台两种方式：
+The prebuilt `.so` files only cover Linux x86_64 / Python 3.11. On other platforms there are two options:
 
-**方法一：meson（推荐，上游官方路径）**
+**Method 1: meson (Recommended, Upstream Official Path)**
 
 ```bash
 pip install meson ninja numpy
@@ -149,7 +149,7 @@ meson compile -C build
 cp build/sources/*.so ../GSASII/
 ```
 
-**方法二：手动 gfortran（无 meson）**
+**Method 2: Manual gfortran (without meson)**
 
 ```bash
 micromamba create -y -p ./gfortran-env -c conda-forge gfortran_linux-64
@@ -164,10 +164,10 @@ for mod in pyspg pypowder pytexture pydiffax pack_f unpack_cbf histogram2d; do
 done
 gcc -fPIC -O2 -c fortranobject.c fmask.c
 gfortran -shared -o pyspg.cpython-311-x86_64-linux-gnu.so pyspg*.o spsubs/*.o NISTlatsubs/*.o -lm
-# 其余模块同法链接后 cp *.so ../GSASII/
+# Link the remaining modules the same way, then cp *.so ../GSASII/
 ```
 
-**验证：**
+**Verification:**
 
 ```bash
 python3 -c "
@@ -179,7 +179,7 @@ print('pyspg / pypowder / pytexture loaded')"
 
 ---
 
-## 测试
+## Testing
 
 ```bash
 cd mcp
@@ -187,9 +187,9 @@ pip install -e ".[test]"
 pytest -q
 ```
 
-**126 项测试全部通过**（Windows / 无编译扩展环境下实测 19.9 s），覆盖：引擎发现与 stdout 守卫、空间群回退与 `P1SGData` 字面量逐字段对齐、17 个工具含错误路径、以及以子进程启动 server、经真实 MCP 客户端走 stdio 的端到端套件。
+**All 126 tests pass** (measured 19.9 s on Windows / an environment without compiled extensions), covering: engine discovery and the stdout guard, space-group fallback and field-by-field alignment of the `P1SGData` literal, all 17 tools including error paths, and an end-to-end suite that launches the server as a subprocess and drives it over stdio with a real MCP client.
 
-引擎侧脚本 API 冒烟测试：
+Engine-side scripting API smoke test:
 
 ```bash
 python3 -c "
@@ -205,24 +205,24 @@ print('project created:', phase.name)"
 
 ---
 
-## 相关项目
+## Related Projects
 
-| 项目 | 说明 | 仓库 |
+| Project | Description | Repository |
 |------|------|------|
-| **FullProf-App-MCP** | FullProf Suite 应用层 MCP server | [FullPatt/FullProf-App-MCP](https://github.com/FullPatt/FullProf-App-MCP) |
-| **Profex-MCP** | Profex/BGMN 物相分析 MCP server | [FullPatt/Profex-MCP](https://github.com/FullPatt/Profex-MCP) |
-| **MAUD-MCP** | MAUD Rietveld 精修 MCP server | [FullPatt/MAUD-MCP](https://github.com/FullPatt/MAUD-MCP) |
+| **FullProf-App-MCP** | Application-layer MCP server for the FullProf Suite | [FullPatt/FullProf-App-MCP](https://github.com/FullPatt/FullProf-App-MCP) |
+| **Profex-MCP** | Profex/BGMN phase-analysis MCP server | [FullPatt/Profex-MCP](https://github.com/FullPatt/Profex-MCP) |
+| **MAUD-MCP** | MAUD Rietveld refinement MCP server | [FullPatt/MAUD-MCP](https://github.com/FullPatt/MAUD-MCP) |
 
 ---
 
-## 许可证
+## License
 
-- **`GSASII/` 引擎与 `sources/`**：GSAS-II Open Source License，Copyright 2010 UChicago Argonne, LLC（见 [`LICENSE`](LICENSE)）。本 fork 的修改均按该许可证要求以注释标明作者。
-- **`mcp/` 协议层**：BSD-3-Clause（见 [`mcp/pyproject.toml`](mcp/pyproject.toml)）。
+- **`GSASII/` engine and `sources/`**: GSAS-II Open Source License, Copyright 2010 UChicago Argonne, LLC (see [`LICENSE`](LICENSE)). All modifications in this fork mark their authors in comments as required by that license.
+- **`mcp/` protocol layer**: BSD-3-Clause (see [`mcp/pyproject.toml`](mcp/pyproject.toml)).
 
 ---
 
-## 致谢
+## Acknowledgements
 
-- **Advanced Photon Source, Argonne National Laboratory** — GSAS-II 开发团队（Robert B. Von Dreele, Brian H. Toby 等）
-- GSAS-II 文档：<https://gsas-ii.readthedocs.io>；教程：<https://advancedphotonsource.github.io/GSAS-II-tutorials>
+- **Advanced Photon Source, Argonne National Laboratory** — GSAS-II development team (Robert B. Von Dreele, Brian H. Toby, et al.)
+- GSAS-II documentation: <https://gsas-ii.readthedocs.io>; tutorials: <https://advancedphotonsource.github.io/GSAS-II-tutorials>
